@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Public Crowdsale Rate</title>
+    <script type="text/javascript" src="https://unpkg.com/web3@1.6.1/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.4/dist/index.js"></script>
+    <script type="text/javascript" src="./config.js"></script>
+    <script type="text/javascript" src="./tools.js"></script>
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h1>Public Crowdsale Rate</h1>
+    <div id="connected" style="display: none">
+        <h2>Selected account: <h3 id="selectedAccountText"></h3></h2>
+        <h5>Should be admin</h5>
+        <div style="display: flex; flex-direction: column; gap: 20px">
+            <div>
+                <div>
+                    <label>Current Crowdsale Rate (RealB tokens per 1 ETH): </label>
+                    <label id="currentRateText">Please wait...</label>
+                </div>
+                <div>
+                    <label>New Crowdsale Rate (RealB tokens per 1 ETH): </label>
+                    <input id="newRateText" type="text" style="width: 400px"/>
+                    <button onclick="changeRate()">Change rate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="connecting">
+        Connecting to Metamask...
+    </div>
+</body>
+<script async>
+    async function main() {
+        await window.connectToMetamask();
+
+        await refreshStatus();
+    }
+
+    async function refreshStatus() {
+        const crowdsaleContract = window.getCrowdsaleContract();
+        crowdsaleContract.methods.rate().call().then((rate) => {
+            document.getElementById('currentRateText').innerText = rate;
+        });
+    }
+
+    function changeRate() {
+        const newRateText = document.getElementById('newRateText').value;
+
+        if (isNaN(parseInt(newRateText))) {
+            alert('Should be an integer number');
+            return;
+        }
+
+        const crowdsaleContract = window.getCrowdsaleContract();
+        crowdsaleContract.methods.changeRate(parseInt(newRateText))
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                refreshStatus();
+                alert('Success');
+            }).catch(() => {
+                alert('Error');
+            });
+    }
+
+    main();
+</script>
+</html>

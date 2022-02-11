@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Mint</title>
+    <script type="text/javascript" src="https://unpkg.com/web3@1.6.1/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.4/dist/index.js"></script>
+    <script type="text/javascript" src="./config.js"></script>
+    <script type="text/javascript" src="./tools.js"></script>
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h1>Internal Mint</h1>
+
+    <div id="connected" style="display: none">
+        <h2>Selected account: <h3 id="selectedAccountText"></h3></h2>
+        <h5>Should be admin</h5>
+        <div style="display: flex; flex-direction: column; gap: 20px">
+            <div>
+                <button onclick="mintEmergencyFund()">Mint Emergency Fund</button>
+                <div>
+                    <label>Used: </label>
+                    <label id="usedEmergencyFundText">Please wait...</label>
+                </div>
+                <div>
+                    <label>Left: </label>
+                    <label id="leftEmergencyFundText">Please wait...</label>
+                </div>
+                <div>
+                    <label>Maturity date: </label>
+                    <label id="maturityDateEmergencyFundText">Please wait...</label>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="mintLongTermFoundationBudget()">Mint Long Term Foundation Budget</button>
+                <div>
+                    <label>Used: </label>
+                    <label id="usedLongTermFoundationBudget">Please wait...</label>
+                </div>
+                <div>
+                    <label>Left: </label>
+                    <label id="leftLongTermFoundationBudget">Please wait...</label>
+                </div>
+                <div>
+                    <label>Maturity date: </label>
+                    <label id="maturityDateLongTermFoundationBudgetText">Please wait...</label>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="mintReservedForUseByAdmin()">Mint Reserved For Use By Admin</button>
+                <div>
+                    <label>Used: </label>
+                    <label id="usedReservedForUseByAdmin">Please wait...</label>
+                </div>
+                <div>
+                    <label>Left: </label>
+                    <label id="leftReservedForUseByAdmin">Please wait...</label>
+                </div>
+                <div>
+                    <label>Maturity date: </label>
+                    <label id="maturityDateReservedForUseByAdminText">Please wait...</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="connecting">
+        Connecting to Metamask...
+    </div>
+</body>
+<script async>
+
+    async function main() {
+        await window.connectToMetamask();
+
+        setMaturityDates();
+        await refreshStatus();
+    }
+
+    function setMaturityDates() {
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.longTermFoundationBudgetReleaseDate().call().then((longTermFoundationBudgetReleaseDate) => {
+            const longTermFoundationBudgetReleaseDateParsed = new Date(parseInt(longTermFoundationBudgetReleaseDate)*1000);
+            const contractDeployDate = longTermFoundationBudgetReleaseDateParsed.addDays(-4 * 365);
+
+            document.getElementById('maturityDateEmergencyFundText').innerText = contractDeployDate.addDays(2 * 365);
+            document.getElementById('maturityDateLongTermFoundationBudgetText').innerText = longTermFoundationBudgetReleaseDateParsed;
+            document.getElementById('maturityDateReservedForUseByAdminText').innerText = contractDeployDate.addDays(365);
+        });
+    }
+
+    async function refreshStatus() {
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.isEmergencyFundMinted().call().then((isEmergencyFundMinted) => {
+            if (isEmergencyFundMinted) {
+                document.getElementById('leftEmergencyFundText').innerText = 0;
+                document.getElementById('usedEmergencyFundText').innerText = 10e7;
+            } else {
+                document.getElementById('leftEmergencyFundText').innerText = 10e7;
+                document.getElementById('usedEmergencyFundText').innerText = 0;
+            }
+        });
+        tokenContract.methods.isLongTermFoundationBudgetMinted().call().then((isLongTermFoundationBudgetMinted) => {
+            if (isLongTermFoundationBudgetMinted) {
+                document.getElementById('leftLongTermFoundationBudget').innerText = 0;
+                document.getElementById('usedLongTermFoundationBudget').innerText = 4e7;
+            } else {
+                document.getElementById('leftLongTermFoundationBudget').innerText = 4e7;
+                document.getElementById('usedLongTermFoundationBudget').innerText = 0;
+            }
+        });
+        tokenContract.methods.reservedForUseByAdminSupplyMinted().call().then((reservedForUseByAdminSupplyMinted) => {
+            const reservedForUseByAdminSupplyMintedNumber = Number(reservedForUseByAdminSupplyMinted.slice(0, -18) || 0);
+            document.getElementById('usedReservedForUseByAdmin').innerText = reservedForUseByAdminSupplyMintedNumber;
+            document.getElementById('leftReservedForUseByAdmin').innerText = 36e7 - reservedForUseByAdminSupplyMintedNumber;
+        });
+    }
+
+    function mintEmergencyFund() {
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.mintEmergencyFund()
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                refreshStatus();
+                alert('Success');
+            }).catch(() => {
+                alert('Error');
+            });
+    }
+    function mintLongTermFoundationBudget() {
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.mintLongTermFoundationBudget()
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                refreshStatus();
+                alert('Success');
+            }).catch(() => {
+            alert('Error');
+        });
+    }
+    function mintReservedForUseByAdmin() {
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.mintReservedForUseByAdmin()
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                refreshStatus();
+                alert('Success');
+            }).catch(() => {
+            alert('Error');
+        });
+    }
+
+    main();
+</script>
+</html>

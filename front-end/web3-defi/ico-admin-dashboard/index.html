@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <div id="dashboard" style="display:none; flex-direction: column; gap: 20px">
+        <a href="view-transactions.html">View Transactions</a>
+        <a href="assign-tokens.html">Assign Tokens</a>
+        <a href="pause-unpause.html">Pause and Unpause User Transfers</a>
+        <a href="private-public.html">Switch between Private and Public rounds</a>
+        <a href="public-rate.html">Public Crowdsale Rate</a>
+        <a href="sold-and-left.html">Total token sold and left</a>
+        <a href="internal-mint.html">Internal Mint</a>
+        <a href="change-admin.html">Change Admin (dangerous)</a>
+        <a href="change-wallet.html">Change Wallet (dangerous)</a>
+    </div>
+    <div id="noserver" style="display:none;">
+        <ol>
+            <li>Have Node.js installed in your system.</li>
+            <li>In CMD as an administrator, run the command npm install http-server -g</li>
+            <li>Navigate to the specific path of your file folder in CMD and run the command http-server</li>
+            <li>Go to your browser and type localhost:8080. Your Application should run there.</li>
+        </ol>
+    </div>
+</body>
+<script>
+    if (window.location.href.startsWith('http')) {
+        document.getElementById('dashboard').style.display = 'flex';
+    } else {
+        document.getElementById('noserver').style.display = 'flex';
+    }
+</script>
+</html>

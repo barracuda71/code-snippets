@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Switch between Private and Public rounds</title>
+    <script type="text/javascript" src="https://unpkg.com/web3@1.6.1/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.4/dist/index.js"></script>
+    <script type="text/javascript" src="./config.js"></script>
+    <script type="text/javascript" src="./tools.js"></script>
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h1>Switch between Private and Public rounds</h1>
+
+    <div id="connected" style="display: none">
+        <h2>Selected account: <h3 id="selectedAccountText"></h3></h2>
+        <h5>Should be admin</h5>
+
+        <div>
+            <div>
+                <label>Status: </label>
+                <label id="statusText">Please wait...</label>
+            </div>
+            <button id="switchToPrivateBtn" onclick="switchToPrivate()" style="display: none">Switch to Private</button>
+            <button id="switchToPublicBtn" onclick="switchToPublic()" style="display: none">Switch to Public</button>
+        </div>
+    </div>
+    <div id="connecting">
+        Connecting to Metamask...
+    </div>
+</body>
+<script async>
+    async function main() {
+        await window.connectToMetamask();
+
+        await refreshStatus();
+    }
+
+    async function refreshStatus() {
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.owner().call().then((owner) => {
+            if (owner.toLowerCase() == window.config.crowdsaleContractAddress.toLowerCase()) {
+                document.getElementById('statusText').innerText = 'Public';
+                document.getElementById('switchToPublicBtn').style.display = 'none';
+                document.getElementById('switchToPrivateBtn').style.display = '';
+            } else {
+                document.getElementById('statusText').innerText = 'Private';
+                document.getElementById('switchToPublicBtn').style.display = '';
+                document.getElementById('switchToPrivateBtn').style.display = 'none';
+            }
+
+        });
+    }
+
+    function switchToPrivate() {
+        const crowdsaleContract = window.getCrowdsaleContract();
+        crowdsaleContract.methods.returnOwnership()
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                refreshStatus();
+                alert('Success');
+            }).catch(() => {
+                alert('Error');
+            });
+    }
+    function switchToPublic() {
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.transferOwnership(config.crowdsaleContractAddress)
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                refreshStatus();
+                alert('Success');
+            }).catch(() => {
+            alert('Error');
+        });
+    }
+
+    main();
+</script>
+</html>

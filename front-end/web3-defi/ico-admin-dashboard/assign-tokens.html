@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assign Tokens</title>
+    <script type="text/javascript" src="https://unpkg.com/web3@1.6.1/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.4/dist/index.js"></script>
+    <script type="text/javascript" src="./config.js"></script>
+    <script type="text/javascript" src="./tools.js"></script>
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h1>Assign Tokens</h1>
+
+    <div id="connected" style="display: none">
+        <h2>Selected account: <h3 id="selectedAccountText"></h3></h2>
+        <h5>Should be admin</h5>
+        <div>
+            <div>
+                <label>Buyer address: </label>
+                <input id="buyerAddressText" type="text" style="width: 400px"/>
+            </div>
+            <div>
+                <label>Token quantity: </label>
+                <input id="tokenQuantityText" type="text" style="width: 400px"/>
+            </div>
+            <button onclick="assignTokens()">Confirm</button>
+        </div>
+    </div>
+    <div id="connecting">
+        Connecting to Metamask...
+    </div>
+</body>
+<script async>
+    async function main() {
+        await window.connectToMetamask();
+    }
+
+    function assignTokens() {
+        const buyerAddressText = document.getElementById('buyerAddressText').value;
+        const tokenQuantityText = document.getElementById('tokenQuantityText').value;
+
+        if (buyerAddressText.length != 42) {
+            alert('Buyer address should be a valid ETH address 0x...');
+            return;
+        }
+        if (isNaN(tokenQuantityText)) {
+            alert('Token quantity should be a number.');
+            return;
+        }
+
+        const tokenContractAddress = config.tokenContractAddress;
+        const tokenContract = new window.web3.eth.Contract(window.abi.token, tokenContractAddress);
+        tokenContract.methods.mint(buyerAddressText, window.toDecimals(tokenQuantityText))
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                alert('Success');
+            }).catch(() => {
+                alert('Error');
+            });
+    }
+
+    main();
+</script>
+</html>

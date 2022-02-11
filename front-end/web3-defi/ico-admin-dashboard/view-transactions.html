@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="./config.js"></script>
+    <title>View Transactions</title>
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h1>View Transactions</h1>
+    <div>
+        <div>
+            <label>Token explorer:</label>
+            <a id="tokenExplorer" target="_blank"/>
+        </div>
+        <div>
+            <label>Crowdsale explorer:</label>
+            <a id="crowdsaleExplorer" target="_blank"/>
+        </div>
+    </div>
+</body>
+<script async>
+    async function main() {
+        const tokenExplorerLink = `${window.config.explorer}/address/${window.config.tokenContractAddress}`;
+        document.getElementById('tokenExplorer').setAttribute('href', tokenExplorerLink);
+        document.getElementById('tokenExplorer').innerText = tokenExplorerLink;
+
+        const crowdsaleExplorerLink = `${window.config.explorer}/address/${window.config.crowdsaleContractAddress}`;
+        document.getElementById('crowdsaleExplorer').setAttribute('href', crowdsaleExplorerLink);
+        document.getElementById('crowdsaleExplorer').innerText = crowdsaleExplorerLink;
+    }
+
+    main();
+</script>
+</html>

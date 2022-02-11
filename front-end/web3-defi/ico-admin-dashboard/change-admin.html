@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Change Admin (dangerous)</title>
+    <script type="text/javascript" src="https://unpkg.com/web3@1.6.1/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.4/dist/index.js"></script>
+    <script type="text/javascript" src="./config.js"></script>
+    <script type="text/javascript" src="./tools.js"></script>
+</head>
+<body>
+    <a href="index.html">Home</a>
+    <h1>Change Admin (dangerous)</h1>
+    <div id="connected" style="display: none">
+        <h2>Selected account: <h3 id="selectedAccountText"></h3></h2>
+        <h5>Should be admin</h5>
+        <div style="display: flex; flex-direction: column; gap: 20px">
+            <div>
+                <div>
+                    <label>Current Crowdsale Owner: </label>
+                    <label id="currentCrowdsaleOwner">Please wait...</label>
+                </div>
+                <div>
+                    <label>Current Token Owner: </label>
+                    <label id="currentTokenOwner">Please wait...</label>
+                </div>
+                <div>
+                    <label>New Admin: </label>
+                    <input id="newAdmin" type="text" style="width: 400px"/>
+                    <button onclick="changeAdmin()">Change admin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="connecting">
+        Connecting to Metamask...
+    </div>
+</body>
+<script async>
+    async function main() {
+        await window.connectToMetamask();
+
+        refreshStatus();
+    }
+
+    function refreshStatus() {
+        const crowdsaleContract = window.getCrowdsaleContract();
+        crowdsaleContract.methods.owner().call().then((owner) => {
+            document.getElementById('currentCrowdsaleOwner').innerText = owner;
+        });
+        const tokenContract = window.getTokenContract();
+        tokenContract.methods.owner().call().then((owner) => {
+            document.getElementById('currentTokenOwner').innerText = owner;
+        });
+    }
+
+    function changeAdmin() {
+        const newAdmin = document.getElementById('newAdmin').value;
+
+        if (newAdmin.length !== 42) {
+            alert('Should be a valid ETH address');
+            return;
+        }
+
+        const currentTokenOwner = document.getElementById('currentTokenOwner').innerText;
+        const currentCrowdsaleOwner = document.getElementById('currentCrowdsaleOwner').innerText;
+        if (currentTokenOwner !== currentCrowdsaleOwner) {
+            // public round
+            alert('Public round. To change Token Contract owner, switch to Private');
+        } else {
+            // private round
+            const tokenContract = window.getTokenContract();
+            tokenContract.methods.transferOwnership(newAdmin)
+                .send({ from: window.selectedAccount })
+                .then(() => {
+                    refreshStatus();
+                    alert('Token Contract owner was changed successfully');
+                }).catch(() => {
+                alert('Error while changing Token Contract owner');
+            });
+        }
+
+        const crowdsaleContract = window.getCrowdsaleContract();
+        crowdsaleContract.methods.transferOwnership(newAdmin)
+            .send({ from: window.selectedAccount })
+            .then(() => {
+                refreshStatus();
+                alert('Crowdsale Contract owner was changed successfully');
+            }).catch(() => {
+                alert('Error while changing Crowdsale Contract owner');
+            });
+    }
+
+    main();
+</script>
+</html>
